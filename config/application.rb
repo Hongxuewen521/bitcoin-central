@@ -6,8 +6,21 @@ Bundler.require(:default, Rails.env) if defined?(Bundler)
 
 module BitcoinBank
   class Application < Rails::Application
+    I18n.const_set :Locales, {
+      :en => "English",
+      :de => "Deutsch",
+      :it => "Italiano",
+      :fr => "Français"
+    }
+
     config.i18n.default_locale = :en
-    
+
+    # See config/initializers/locales.rb
+    config.i18n.available_locales = I18n::Locales.keys
+
+    config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '**', '*.yml')]
+
+
     config.encoding = "utf-8"
     config.filter_parameters += [:password]
     config.action_dispatch.session_store = :active_record_store

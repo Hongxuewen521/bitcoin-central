@@ -1,20 +1,21 @@
 class ThirdPartyCallbacksController < ApplicationController
   skip_before_filter :verify_authenticity_token,
     :get_bitcoin_client,
-    :authenticate,
-    :authorize,
+    :authenticate_user!,
     :set_time_zone
 
   # Liberty Reserve bounce URLs
   def lr_transfer_success
-    transfer = LibertyReserveTransfer.find_by_lr_transaction_id(params[:lr_transfer])
+    # Following line costs an LR API call but won't explode if LR forgot to
+    # hit our callback URL when a user deposited some funds
+    transfer = Transfer.create_from_lr_transaction_id(params[:lr_transfer])
 
     redirect_to account_transfers_path,
-      :notice => "Successfully added #{transfer.amount} #{params[:lr_currency]} to your account (LR fees : #{transfer.lr_merchant_fee + params[:lr_fee_amnt].to_f} #{params[:lr_currency]})"
+      :notice => t(:lr_transfer_success, :amount => transfer.amount, :currency => params[:lr_currency], :fee => (transfer.lr_merchant_fee + params[:lr_fee_amnt].to_f))
   end
 
   def lr_transfer_fail
-    flash[:error] = "Your #{params[:lr_amnt]} #{params[:lr_currency]} transfer failed."
+    flash[:error] = t(:lr_transfer_failure, :amount => params[:lr_amnt], :currency => params[:lr_currency])
     redirect_to account_transfers_path
   end
 
@@ -32,7 +33,7 @@ class ThirdPartyCallbacksController < ApplicationController
 
   # Pecunix cancel callback
   def px_cancel
-    flash[:error] = "Your Pecunix transfer was canceled"
+    flash[:error] = t(:px_transfer_canceled)
     redirect_to account_transfers_path
   end
 
@@ -40,8 +41,8 @@ class ThirdPartyCallbacksController < ApplicationController
   def px_payment
     t = Transfer.find_by_px_tx_id(params["PAYMENT_REC_ID"])
 
-    redirect_to account_transfers_path,
-      :notice => "You successfully transferred #{t.amount} PGAU to your account (Pecunix charged a #{t.px_fee} PGAU fee)"
+    redirect_to(account_transfers_path,
+      :notice => t(:px_transfer_success), :amount => t.amount, :fee => t.px_fee)
   end
 
   # Pecunix success callback

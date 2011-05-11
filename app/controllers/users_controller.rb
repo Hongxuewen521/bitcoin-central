@@ -1,5 +1,5 @@
 class UsersController < ApplicationController
-  skip_before_filter :authenticate, :authorize,
+  skip_before_filter :authenticate_user!,
     :only => [:new, :create]
 
   def new
@@ -7,7 +7,7 @@ class UsersController < ApplicationController
   end
 
   def edit
-    @user = @current_user
+    @user = current_user
   end
 
   def create
@@ -17,14 +17,14 @@ class UsersController < ApplicationController
 
     if @user.save
       session[:current_user_id] = @user.id
-      redirect_to account_path, :notice => 'Your account was successfully created'
+      redirect_to account_path, :notice => (t :account_created)
     else
       render :action => :new
     end
   end
 
   def update
-    @user = @current_user
+    @user = current_user
 
     # White list acceptable input instead of blacklisting dangerous params
     params[:user].delete(:account)
@@ -32,7 +32,7 @@ class UsersController < ApplicationController
 
     if @user.update_attributes(params[:user])
       redirect_to edit_user_path,
-        :notice => 'Your account was successfully updated'
+        :notice => (t :account_updated)
     else
       render :action => :edit
     end

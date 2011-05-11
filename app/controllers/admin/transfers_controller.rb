@@ -1,9 +1,7 @@
 class Admin::TransfersController < Admin::AdminController
   active_scaffold :transfer do |config|
-    config.label = "Transfers"
+    config.list.columns = [:user, :amount, :currency, :bt_tx_confirmations, :type, :created_at]
 
-    config.columns = [:user, :created_at, :amount, :currency, :bt_tx_confirmations]
-
-    config.columns[:bt_tx_confirmations].label = "Confirmations"
+    config.columns[:user].form_ui = :select
   end
 end

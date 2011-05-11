@@ -56,6 +56,10 @@ class Transfer < ActiveRecord::Base
     end
   }
 
+  def to_label
+    "#{I18n.t("activerecord.models.transfer.one")} n°#{id}"
+  end
+
   def self.from_params(payee, params)
     transfer = Transfer.new
 
@@ -74,6 +78,15 @@ class Transfer < ActiveRecord::Base
       end
 
       transfer.withdrawal!
+    end
+  end
+
+  def self.create_from_lr_transaction_id(lr_tx_id)
+    # We create a plain Transfer since we don't want
+    # anything to be executed after creation
+
+    unless Transfer.where(:lr_transaction_id => lr_tx_id).first
+      Transfer.create! LibertyReserve::Client.new.get_transaction(lr_tx_id)
     end
   end
 end

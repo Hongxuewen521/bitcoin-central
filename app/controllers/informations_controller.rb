@@ -1,5 +1,5 @@
 class InformationsController < ApplicationController
-  skip_before_filter :authorize
+  skip_before_filter :authenticate_user!
 
   def welcome
     @min_y = [0.3 * (Trade.minimum(:ppc) or 0) - (Trade.maximum(:ppc) or 0), 0].max
@@ -43,8 +43,7 @@ class InformationsController < ApplicationController
         },
         :xaxis => {
           :tickOptions => {
-            # TODO : Take locale into account
-            :formatString => "%m/%d"
+            :formatString => (t :chart_date_format)
           },
           :tickInterval => "1 day"
         }

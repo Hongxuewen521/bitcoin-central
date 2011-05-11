@@ -3,7 +3,7 @@ BitcoinBank::Application.routes.draw do
     resources :addresses, :only => [:create]
   end
 
-  resource :session
+  devise_for :users, :controllers => { :registrations => "registrations" }
 
   resource :chart, :path => "charts", :only => [] do
     get :price
@@ -44,9 +44,11 @@ BitcoinBank::Application.routes.draw do
   end
 
   namespace :admin do
-    resources :transfers do
-      as_routes
-    end
+    %w{transfers users}.each { |r| resources(r.to_sym) {as_routes} }
+
+    resource :informations,
+      :only => [:show],
+      :controller => "informations"
   end
 
   match '/trades' => 'trades#all_trades'
